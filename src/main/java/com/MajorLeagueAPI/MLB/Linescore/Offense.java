@@ -10,6 +10,15 @@ public class Offense {
    Player third;
    Player pitcher;
    int battingOrder;
+   Team team;
+
+   public Team getTeam() {
+      return team;
+   }
+
+   public void setTeam(Team team) {
+      this.team = team;
+   }
 
    public Player getBatter() {
       return batter;

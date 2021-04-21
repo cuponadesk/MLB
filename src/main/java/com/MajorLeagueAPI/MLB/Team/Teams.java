@@ -35,4 +35,15 @@ public class Teams {
       }
       return "";
    }
+
+   public String getFullTeamNameFromId(int id) {
+      if(teams!=null) {
+         for(Team t : teams) {
+            if(t.id == id) {
+               return t.getName();
+            }
+         }
+      }
+      return "";
+   }
 }

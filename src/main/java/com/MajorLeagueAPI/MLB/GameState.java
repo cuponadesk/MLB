@@ -2,16 +2,35 @@ package com.MajorLeagueAPI.MLB;
 
 public class GameState {
 
-   private int balls,strikes, outs;
-   private boolean first, second, third;
-   private int inning;
-   private int inningHalf;
-   private String batting, pitching;
-   private int homeRuns, homeHits, homeErrors;
-   private int awayRuns, awayHits, awayErrors;
-   private String homeName, awayName;
+   private int balls =0,strikes=0, outs=0;
+   private boolean first=false, second=false, third=false;
+   private int inning=1;
+   private int inningHalf=0;
+   private String batting="", pitching="";
+   private int homeRuns=0, homeHits=0, homeErrors=0;
+   private int awayRuns=0, awayHits=0, awayErrors=0;
+   private String homeName="", awayName="";
+   private String homeNameShort="", awayNameShort = "";
    private String startTime;
    private String status;
+   private boolean updateAble;
+   private String inningHalfWord = "";
+
+   public String getInningHalfWord() {
+      return inningHalfWord;
+   }
+
+   public void setInningHalfWord(String inningHalfWord) {
+      this.inningHalfWord = inningHalfWord;
+   }
+
+   public boolean isUpdateAble() {
+      return updateAble;
+   }
+
+   public void setUpdateAble(boolean updateAble) {
+      this.updateAble = updateAble;
+   }
 
    public int getBalls() {
       return balls;
@@ -171,6 +190,22 @@ public class GameState {
 
    public void setStatus(String status) {
       this.status = status;
+   }
+
+   public String getHomeNameShort() {
+      return homeNameShort;
+   }
+
+   public void setHomeNameShort(String homeNameShort) {
+      this.homeNameShort = homeNameShort;
+   }
+
+   public String getAwayNameShort() {
+      return awayNameShort;
+   }
+
+   public void setAwayNameShort(String awayNameShort) {
+      this.awayNameShort = awayNameShort;
    }
 
    public String toString() {

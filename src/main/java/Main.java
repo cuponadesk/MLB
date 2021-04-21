@@ -1,148 +1,132 @@
+import com.MajorLeagueAPI.MLB.GameState;
 import com.MajorLeagueAPI.MLB.MLB;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.util.Date;
+import java.awt.image.BufferedImage;
+import java.io.File;
 
-public class Main extends JFrame {
 
-    JFrame frame = new JFrame();
-    Color grassGreen = new Color(0,128,24);
+public class Main extends JFrame{
+
     MLB mlb = new MLB("Cincinnati Reds");
-
-
-    public Main() {
-        mlb.gameToday("Cincinnati Reds");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.add(new Panel(mlb));
-        frame.pack();
-        frame.setVisible(true);
-    }
-    public static void main(String[] args) {
-        new Main();
-    }
-}
-class Panel extends JPanel {
     Timer timer;
-    MLB mlb;
-    Panel(MLB mlb) {
-        this.mlb = mlb;
-        setBackground(new Color(196,196,196));
-        setForeground(Color.WHITE);
-        refreshScreen();
-    }
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        Long d = new Date().getTime();
-        g.setFont(new Font("arial", Font.PLAIN, 24));
-        if( mlb.isGameToday() && mlb.isGameStarted()) {
-//        System.out.println(mlb.getState().getHomeName());
-            g.drawString(mlb.getState().getHomeName(), 6, 24);
-            g.drawString(mlb.getState().getAwayName(), 6, 54);
-        }
-        else if( mlb.isGameToday() && mlb.isGameStarted()) {            //Draw Preview
+    BufferedImage image = null;
+    GameState gameData;
+    int timerDelay = 1000*10;
+    JFrame jp;
 
-        }
-//        boolean spaceNeeded = false;
-//
-//        if(mlb.getState().getHomeRuns() > 9 || mlb.getState().getAwayRuns() > 9){
-//            spaceNeeded = true;
-//        }
-//
-//        int xOffset;
-//
-//        g.drawString(Integer.toString(mlb.getState().getHomeRuns()), 120, 24);
-//        g.drawString(Integer.toString(mlb.getState().getAwayRuns()), 120, 54);
-//
-//        if(spaceNeeded) {
+    Main()
+    {
+        jp=new JFrame("spot");
+        loadBackgroundImage();
+        jp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-//        }
-    }
-    public void refreshScreen() {
-        timer = new Timer(0, new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                mlb.tick();
-                repaint();
+        gameData = mlb.updateGameState();
+        timer = new Timer(0, e -> {
+            if(mlb.isGameToday() && mlb.isGameStarted() && !mlb.isTimerStarted()) {
+                mlb.startUpdateTimer(10 * 1000);
             }
+            else if((!mlb.isGameToday() || !mlb.isGameStarted()) && mlb.isTimerStarted()) {
+                mlb.stopUpdateTimer();
+            }
+            repaint();
         });
         timer.setRepeats(true);
-        // Aprox. 1 FPS
-        timer.setDelay(1000);
+        timer.setDelay(timerDelay);
         timer.start();
+
     }
-    @Override
-    public Dimension getPreferredSize() {
-        return new Dimension(650, 480);
+
+    public void paint(Graphics g) {
+//        super.paint(g);
+        g.setColor(Color.RED);
+        g.drawImage(image, 0, 30, null);
+        if (gameData.isFirst()) {
+            g.fillOval(660, 120, 20, 20);//first
+        }
+        if (gameData.isThird()) {
+            g.fillOval(526, 120, 20, 20);//third
+        }
+        if (gameData.isSecond()) {
+            g.fillOval(593, 50, 20, 20);//second
+        }
+        g.setColor(Color.BLACK);
+
+        g.setFont(new Font("arial", Font.BOLD, 24));
+        g.drawString(gameData.getHomeName(), 50, 100);
+        g.drawString(Integer.toString(gameData.getHomeRuns()), 350, 100);
+        g.drawString(Integer.toString(gameData.getHomeHits()), 400, 100);
+        g.drawString(Integer.toString(gameData.getHomeErrors()), 450, 100);
+
+        g.drawString(gameData.getAwayName(), 50, 140);
+
+        g.drawString(Integer.toString(gameData.getAwayRuns()), 350, 140);
+        g.drawString(Integer.toString(gameData.getAwayHits()), 400, 140);
+        g.drawString(Integer.toString(gameData.getAwayErrors()), 450, 140);
+
+        g.drawString(gameData.getInningHalfWord() + " " + gameData.getInning(), 50, 64);
+        g.setFont(new Font("arial", Font.BOLD, 16));
+        g.drawString("Pitching: " + gameData.getPitching(), 50, 190);
+        g.drawString("Batting: " + gameData.getBatting(), 50, 215);
+
+
+        g.drawString("Balls", 350, 190);
+        g.drawString("Strikes", 350, 215);
+        g.drawString("Outs", 460, 190);
+
+        Color deepBlue = new Color(0, 27, 164);
+        g.setColor(deepBlue);
+        int xStart = 393;
+        for (int i = 0; i < gameData.getBalls(); i++) {
+            g.fillOval(xStart + i * 15, 179, 10, 10);
+        }
+        g.setColor(new Color(128, 0, 0));
+        xStart = 406;
+        for (int i = 0; i < gameData.getStrikes(); i++) {
+            g.fillOval(xStart + i * 15, 205, 10, 10);
+        }
+        g.setColor(Color.BLACK);
+        xStart = 500;
+        for (int i = 0; i < gameData.getOuts(); i++) {
+            g.fillOval(xStart + i * 15, 179, 10, 10);
+        }
+
+
+        int yBatting = 80;
+
+        if (gameData.getInningHalf() < 1) {
+            yBatting += 40;
+        }
+        g.setColor(Color.white);
+        g.fillOval(20, yBatting, 20, 20);
+    }
+
+    public static void main(String...args)
+    {
+
+        Main obj = new Main();
+        obj.setSize(710,240);
+        obj.setVisible(true);
+
+    }
+
+    private void loadBackgroundImage() {
+        String fileName = "3.jpg";
+        ClassLoader classLoader = getClass().getClassLoader();
+        try{
+            File file = new File(classLoader.getResource(fileName).getFile());
+            image =  ImageIO.read(file);
+        }
+        catch (Exception e) {
+            System.out.println( e);
+        }
+    }
+
+    private void sizeBugPatch() {
+        while (jp.getWidth() > 710) {
+            jp.pack();
+        }
     }
 }
-
-//public class Application {
-//
-//    public static void main(String[] args) {
-//        MLB mlb = new MLB();
-//        System.out.println(mlb.gameToday("Cincinnati Reds"));
-//        while(true) {
-//            if(mlb.tick()) {
-//                System.out.println(mlb.getState().toString() + '\n');
-//            }
-//        }
-
-
-
-
-//        String pattern = "MM/dd/yyyy";
-//        SimpleDateFormat formatter, FORMATTER;
-//        formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-//        String dateInString = new SimpleDateFormat(pattern).format(new Date());
-//        MLBBase base = restTemplate.getForObject(BASE_URL+
-//              dateInString
-////              "04/28/2021"
-//              , MLBBase.class);
-//        formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
-//        FORMATTER = new SimpleDateFormat("hh:mm a");
-//
-//        int x = 1;
-//        if (base.getDates().size() > 0) {
-//            try {
-//                for (Game g : base.getDates().get(0).getGames()) {
-//                    Calendar gameTime = Calendar.getInstance();
-//                    gameTime.setTime(formatter.parse(g.getGameDate()));
-//                    Date d = gameTime.getTime();
-//
-//                    Status s = g.getStatus();
-//                    ScheduleTeam home = g.getTeams().getHome();
-//                    ScheduleTeam away = g.getTeams().getAway();
-////                    System.out.println(s.getDetailedState());
-//
-//                    switch(s.getCodedGameState()) {
-//                        //Scheduled
-//                        case 'S' :
-//                        case 'P' :
-////                            System.out.println("Scheduled " + d.);
-//                            String lineOne = home.getTeam().getName();
-//                            String lineTwo = away.getTeam().getName();
-//                            break;
-//
-//                    }
-//                    String spaces = " ";
-//
-//                        spaces = spaces.repeat(25 - home.getTeam().getName().length() - home.getScore().toString().length());
-//                        System.out.println(home.getTeam().getName() + spaces + home.getScore() + (home.getIsWinner() ? " Winner" : " "));
-//                        spaces = " ";
-//                        spaces = spaces.repeat(25 - away.getTeam().getName().length() - away.getScore().toString().length());
-//                        System.out.println(away.getTeam().getName() + spaces + away.getScore() + (away.getIsWinner() ? " Winner" : " "));
-//                        System.out.printf("GamePk: %d%n%n", g.getGamePk());
-//                }
-//            } catch (Exception ex) {
-//                System.out.println(ex);
-//            }
-//        }
-//        else {
-//            System.out.println("No games today");
-//        }
-//    }
-//}
